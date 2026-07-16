@@ -37,9 +37,9 @@ console.log("shore angle deg:", (Math.atan(slope) * 180 / Math.PI).toFixed(1));
 const COS = Math.cos(theta), SIN = Math.sin(theta);
 
 /* 表示範囲：幅 SPAN_M メートル、中心を CX_M, CY_M（回転後座標）だけずらす */
-const SPAN_M = 1100;               // 横方向の実距離
+const SPAN_M = 580;                // 横方向の実距離
 const SCALE = W / SPAN_M;          // px per meter
-const CX_M = 65, CY_M = 10;        // 回転後の中心オフセット（調整用）
+const CX_M = 48, CY_M = 40;        // 回転後の中心オフセット（調整用）
 
 function proj(p) {
   const m = meters(p);

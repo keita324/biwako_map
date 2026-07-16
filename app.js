@@ -8,7 +8,7 @@ const STORAGE_KEY = "biwako-crowd-map-v1";
 /* 状態：ブロックID → レベル(0〜5) */
 const state = {
   levels: {},
-  title: "びわ湖大花火大会 混雑マップ",
+  title: "混雑マップ",
   time: "",
 };
 
@@ -27,6 +27,8 @@ function loadState() {
     if (data.levels) state.levels = data.levels;
     if (typeof data.title === "string") state.title = data.title;
     if (typeof data.time === "string") state.time = data.time;
+    // 旧デザインの既定タイトルは新しい既定値に置き換える
+    if (state.title === "びわ湖大花火大会 混雑マップ") state.title = "混雑マップ";
   } catch (e) { /* 壊れたデータは無視 */ }
 }
 
@@ -34,66 +36,146 @@ function levelOf(id) {
   return state.levels[id] || 0;
 }
 
-/* ---------- 地図上のブロック描画 ---------- */
+/* ---------- 地図上のブロック描画（ヒートマップ風） ---------- */
 function buildBlocks() {
   const layer = document.getElementById("blocks-layer");
   layer.textContent = "";
 
+  // レベル別のグラデーション（中心が濃く、外側へ溶けていく）
+  const defs = document.querySelector("#map defs");
+  LEVELS.forEach((lv) => {
+    if (lv.value === 0) return;
+    const grad = document.createElementNS(SVG_NS, "radialGradient");
+    grad.setAttribute("id", `heat-grad-${lv.value}`);
+    [[0, 0.9], [0.55, 0.6], [1, 0]].forEach(([offset, opacity]) => {
+      const stop = document.createElementNS(SVG_NS, "stop");
+      stop.setAttribute("offset", offset);
+      stop.setAttribute("stop-color", lv.fill);
+      stop.setAttribute("stop-opacity", opacity);
+      grad.appendChild(stop);
+    });
+    defs.appendChild(grad);
+  });
+
+  const heat = document.createElementNS(SVG_NS, "g");
+  heat.setAttribute("id", "heat-layer");
+  heat.setAttribute("filter", "url(#heat-blur)");
+  const outlines = document.createElementNS(SVG_NS, "g");
+  outlines.setAttribute("id", "outline-layer");
+  const pills = document.createElementNS(SVG_NS, "g");
+  pills.setAttribute("id", "pill-layer");
+  const hits = document.createElementNS(SVG_NS, "g");
+  hits.setAttribute("id", "hit-layer");
+  layer.appendChild(heat);
+  layer.appendChild(outlines);
+  layer.appendChild(pills);
+  layer.appendChild(hits);
+
   BLOCKS.forEach((b) => {
-    const g = document.createElementNS(SVG_NS, "g");
-    g.setAttribute("class", "block");
-    g.dataset.id = b.id;
-    if (b.rot) {
-      g.setAttribute("transform", `rotate(${b.rot} ${b.x + b.w / 2} ${b.y + b.h / 2})`);
-    }
+    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    const rotAttr = b.rot ? `rotate(${b.rot} ${cx} ${cy})` : null;
 
-    const rect = document.createElementNS(SVG_NS, "rect");
-    rect.setAttribute("x", b.x);
-    rect.setAttribute("y", b.y);
-    rect.setAttribute("width", b.w);
-    rect.setAttribute("height", b.h);
-    rect.setAttribute("rx", 8);
-    rect.setAttribute("stroke", "#ffffff");
-    rect.setAttribute("stroke-width", 3);
-    rect.setAttribute("fill-opacity", 0.88);
+    // ヒートマップの楕円
+    const ell = document.createElementNS(SVG_NS, "ellipse");
+    ell.setAttribute("cx", cx);
+    ell.setAttribute("cy", cy);
+    ell.setAttribute("rx", b.w * 0.72);
+    ell.setAttribute("ry", b.h * 0.72);
+    if (rotAttr) ell.setAttribute("transform", rotAttr);
+    ell.dataset.id = b.id;
+    heat.appendChild(ell);
 
-    const idText = document.createElementNS(SVG_NS, "text");
-    idText.setAttribute("x", b.x + 7);
-    idText.setAttribute("y", b.y + 18);
-    idText.setAttribute("font-size", 14);
-    idText.setAttribute("font-weight", 800);
-    idText.classList.add("block-id-text");
+    // 未入力時のガイド枠
+    const outline = document.createElementNS(SVG_NS, "rect");
+    outline.setAttribute("x", b.x);
+    outline.setAttribute("y", b.y);
+    outline.setAttribute("width", b.w);
+    outline.setAttribute("height", b.h);
+    outline.setAttribute("rx", 10);
+    outline.setAttribute("fill", "#ffffff");
+    outline.setAttribute("fill-opacity", 0.25);
+    outline.setAttribute("stroke", "#8b8880");
+    outline.setAttribute("stroke-width", 1.5);
+    outline.setAttribute("stroke-dasharray", "6 5");
+    if (rotAttr) outline.setAttribute("transform", rotAttr);
+    outline.dataset.id = b.id;
+    outlines.appendChild(outline);
 
-    const lvText = document.createElementNS(SVG_NS, "text");
-    lvText.setAttribute("x", b.x + b.w / 2 + 6);
-    lvText.setAttribute("y", b.y + b.h / 2 + (b.h >= 56 ? 14 : 11));
-    lvText.setAttribute("text-anchor", "middle");
-    lvText.setAttribute("font-size", b.h >= 56 ? 28 : 24);
-    lvText.setAttribute("font-weight", 800);
-    lvText.classList.add("block-level-text");
+    // ブロック名＋数字のピル
+    const pill = document.createElementNS(SVG_NS, "g");
+    pill.dataset.id = b.id;
+    const pr = document.createElementNS(SVG_NS, "rect");
+    pr.setAttribute("x", cx - 33);
+    pr.setAttribute("y", cy - 14);
+    pr.setAttribute("width", 66);
+    pr.setAttribute("height", 28);
+    pr.setAttribute("rx", 14);
+    pr.setAttribute("fill", "#ffffff");
+    pr.setAttribute("fill-opacity", 0.94);
+    pr.setAttribute("stroke", "rgba(11,11,11,0.18)");
+    pr.setAttribute("stroke-width", 1);
+    const pt = document.createElementNS(SVG_NS, "text");
+    pt.setAttribute("x", cx);
+    pt.setAttribute("y", cy + 6);
+    pt.setAttribute("text-anchor", "middle");
+    pt.classList.add("pill-text");
+    pill.appendChild(pr);
+    pill.appendChild(pt);
+    pills.appendChild(pill);
 
-    g.appendChild(rect);
-    g.appendChild(idText);
-    g.appendChild(lvText);
-    g.addEventListener("click", () => {
+    // タップ判定
+    const hit = document.createElementNS(SVG_NS, "rect");
+    hit.setAttribute("x", b.x);
+    hit.setAttribute("y", b.y);
+    hit.setAttribute("width", b.w);
+    hit.setAttribute("height", b.h);
+    hit.setAttribute("fill", "transparent");
+    hit.setAttribute("pointer-events", "all");
+    hit.setAttribute("cursor", "pointer");
+    if (rotAttr) hit.setAttribute("transform", rotAttr);
+    hit.addEventListener("click", () => {
       setLevel(b.id, (levelOf(b.id) + 1) % LEVELS.length);
     });
-    layer.appendChild(g);
+    hits.appendChild(hit);
   });
 }
 
 function paintBlocks() {
-  document.querySelectorAll("#blocks-layer .block").forEach((g) => {
-    const id = g.dataset.id;
-    const lv = LEVELS[levelOf(id)];
-    const rect = g.querySelector("rect");
-    const idText = g.querySelector(".block-id-text");
-    const lvText = g.querySelector(".block-level-text");
-    rect.setAttribute("fill", lv.fill);
-    idText.setAttribute("fill", lv.text);
-    idText.textContent = id;
-    lvText.setAttribute("fill", lv.text);
-    lvText.textContent = lv.value === 0 ? "" : String(lv.value);
+  BLOCKS.forEach((b) => {
+    const lv = LEVELS[levelOf(b.id)];
+    const ell = document.querySelector(`#heat-layer ellipse[data-id="${b.id}"]`);
+    const outline = document.querySelector(`#outline-layer rect[data-id="${b.id}"]`);
+    const pill = document.querySelector(`#pill-layer g[data-id="${b.id}"]`);
+    const pt = pill.querySelector(".pill-text");
+
+    if (lv.value === 0) {
+      ell.setAttribute("display", "none");
+      outline.setAttribute("display", "inline");
+      pt.innerHTML = "";
+      const t1 = document.createElementNS(SVG_NS, "tspan");
+      t1.setAttribute("font-size", 13);
+      t1.setAttribute("font-weight", 700);
+      t1.setAttribute("fill", "#898781");
+      t1.textContent = b.id + " −";
+      pt.appendChild(t1);
+    } else {
+      ell.setAttribute("fill", `url(#heat-grad-${lv.value})`);
+      ell.setAttribute("display", "inline");
+      outline.setAttribute("display", "none");
+      pt.innerHTML = "";
+      const t1 = document.createElementNS(SVG_NS, "tspan");
+      t1.setAttribute("font-size", 12);
+      t1.setAttribute("font-weight", 700);
+      t1.setAttribute("fill", "#52514e");
+      t1.textContent = b.id + " ";
+      const t2 = document.createElementNS(SVG_NS, "tspan");
+      t2.setAttribute("font-size", 17);
+      t2.setAttribute("font-weight", 800);
+      t2.setAttribute("fill", "#0b0b0b");
+      t2.textContent = String(lv.value);
+      pt.appendChild(t1);
+      pt.appendChild(t2);
+    }
   });
 }
 

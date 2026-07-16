@@ -20,37 +20,69 @@
     <svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720"
          font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic',sans-serif">
 
+      <defs>
+        <!-- ヒートマップ用のぼかしフィルタとグラデーション（JSがレベル別に追加） -->
+        <filter id="heat-blur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="18"/>
+        </filter>
+        <linearGradient id="title-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0b1f4d"/>
+          <stop offset="1" stop-color="#050f2b"/>
+        </linearGradient>
+        <linearGradient id="title-accent" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#e64545"/>
+          <stop offset="1" stop-color="#e6a03c"/>
+        </linearGradient>
+      </defs>
+
       <!-- ベースマップ（OpenStreetMapデータから生成。JSが basemap.js の内容を挿入） -->
       <g id="basemap-container"></g>
 
       <!-- 地名ラベル -->
       <g id="labels">
-        <text x="920" y="100" font-size="34" font-weight="700" fill="#3a6f93" letter-spacing="8">琵琶湖</text>
-        <text x="566" y="408" font-size="17" font-weight="700" fill="#6a675e" text-anchor="middle">びわ湖ホール</text>
-        <text x="741" y="380" font-size="13" font-weight="600" fill="#6a675e" text-anchor="middle">ピアザ淡海</text>
-        <text x="400" y="512" font-size="16" font-weight="700" fill="#5b5850" transform="rotate(7 400 512)">なぎさ通り</text>
-        <text x="392" y="262" font-size="15" font-weight="700" fill="#4b7a3a" text-anchor="middle">大津湖岸なぎさ公園（打出の森）</text>
-        <text x="1056" y="128" font-size="15" font-weight="700" fill="#4b7a3a" text-anchor="middle" transform="rotate(-16 1056 128)">なぎさのプロムナード</text>
+        <text x="620" y="80" font-size="32" font-weight="700" fill="#3a6f93" letter-spacing="8">琵琶湖</text>
+        <text x="520" y="372" font-size="20" font-weight="700" fill="#6a675e" text-anchor="middle">びわ湖ホール</text>
+        <text x="878" y="330" font-size="17" font-weight="600" fill="#6a675e" text-anchor="middle">ピアザ淡海</text>
+        <text x="250" y="548" font-size="17" font-weight="700" fill="#5b5850" transform="rotate(7 250 548)">なぎさ通り</text>
+        <text x="215" y="150" font-size="16" font-weight="700" fill="#4b7a3a" text-anchor="middle">大津湖岸なぎさ公園（打出の森）</text>
+        <text x="1246" y="60" font-size="15" font-weight="700" fill="#3a6f93" text-anchor="middle" transform="rotate(74 1246 60)">河川</text>
       </g>
 
       <!-- 入口・本部の目印 -->
       <g id="badges" font-size="14" font-weight="700">
-        <rect x="288" y="448" width="48" height="24" rx="5" fill="#c22525"/>
-        <text x="312" y="465" fill="#ffffff" text-anchor="middle">入口</text>
-        <rect x="652" y="400" width="48" height="24" rx="5" fill="#c22525"/>
-        <text x="676" y="417" fill="#ffffff" text-anchor="middle">入口</text>
-        <rect x="706" y="400" width="48" height="24" rx="5" fill="#33322e"/>
-        <text x="730" y="417" fill="#ffffff" text-anchor="middle">本部</text>
+        <rect x="120" y="500" width="48" height="24" rx="5" fill="#c22525"/>
+        <text x="144" y="517" fill="#ffffff" text-anchor="middle">入口</text>
+        <rect x="762" y="242" width="48" height="24" rx="5" fill="#c22525"/>
+        <text x="786" y="259" fill="#ffffff" text-anchor="middle">入口</text>
+        <rect x="816" y="242" width="48" height="24" rx="5" fill="#33322e"/>
+        <text x="840" y="259" fill="#ffffff" text-anchor="middle">本部</text>
       </g>
 
       <!-- ブロック（JSが生成） -->
       <g id="blocks-layer"></g>
 
-      <!-- タイトルカード -->
-      <g>
-        <rect x="16" y="14" width="520" height="74" rx="10" fill="#ffffff" opacity="0.94" stroke="#c3c2b7" stroke-width="1.5"/>
-        <text id="svg-title" x="36" y="46" font-size="26" font-weight="800" fill="#0b0b0b">びわ湖大花火大会 混雑マップ</text>
-        <text id="svg-time" x="36" y="76" font-size="20" font-weight="600" fill="#52514e">-- 現在</text>
+      <!-- タイトルカード（埋め込み先ページのトーンに合わせたネイビー） -->
+      <g id="title-card">
+        <rect x="20" y="18" width="404" height="92" rx="14" fill="url(#title-grad)"/>
+        <rect x="20" y="18" width="404" height="92" rx="14" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1.5"/>
+        <rect x="44" y="66" width="34" height="4" rx="2" fill="url(#title-accent)"/>
+        <text x="44" y="52" font-size="15" font-weight="600" fill="#8d96b3" letter-spacing="3">びわ湖大花火大会 2026</text>
+        <text id="svg-title" x="90" y="96" font-size="28" font-weight="800" fill="#ffffff" letter-spacing="2">混雑マップ</text>
+        <text id="svg-time" x="404" y="95" font-size="17" font-weight="700" fill="#e6c35c" text-anchor="end"></text>
+        <!-- 花火のあしらい -->
+        <g transform="translate(384,44)" stroke-linecap="round">
+          <g stroke="#e6c35c" stroke-width="2">
+            <line x1="0" y1="-14" x2="0" y2="-7"/>
+            <line x1="0" y1="7" x2="0" y2="14"/>
+            <line x1="-14" y1="0" x2="-7" y2="0"/>
+            <line x1="7" y1="0" x2="14" y2="0"/>
+            <line x1="-10" y1="-10" x2="-5" y2="-5"/>
+            <line x1="5" y1="5" x2="10" y2="10"/>
+            <line x1="-10" y1="10" x2="-5" y2="5"/>
+            <line x1="5" y1="-5" x2="10" y2="-10"/>
+          </g>
+          <circle cx="0" cy="0" r="2.4" fill="#e64545"/>
+        </g>
       </g>
 
       <!-- 凡例（JSが生成） -->
@@ -71,7 +103,7 @@
       <h2>画像に表示する情報</h2>
       <label class="field">
         <span>タイトル</span>
-        <input type="text" id="input-title" value="びわ湖大花火大会 混雑マップ">
+        <input type="text" id="input-title" value="混雑マップ">
       </label>
       <label class="field">
         <span>時刻表示</span>
