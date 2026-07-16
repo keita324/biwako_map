@@ -43,6 +43,9 @@ function buildBlocks() {
     const g = document.createElementNS(SVG_NS, "g");
     g.setAttribute("class", "block");
     g.dataset.id = b.id;
+    if (b.rot) {
+      g.setAttribute("transform", `rotate(${b.rot} ${b.x + b.w / 2} ${b.y + b.h / 2})`);
+    }
 
     const rect = document.createElementNS(SVG_NS, "rect");
     rect.setAttribute("x", b.x);
@@ -55,17 +58,17 @@ function buildBlocks() {
     rect.setAttribute("fill-opacity", 0.88);
 
     const idText = document.createElementNS(SVG_NS, "text");
-    idText.setAttribute("x", b.x + 10);
-    idText.setAttribute("y", b.y + 24);
-    idText.setAttribute("font-size", 17);
+    idText.setAttribute("x", b.x + 7);
+    idText.setAttribute("y", b.y + 18);
+    idText.setAttribute("font-size", 14);
     idText.setAttribute("font-weight", 800);
     idText.classList.add("block-id-text");
 
     const lvText = document.createElementNS(SVG_NS, "text");
-    lvText.setAttribute("x", b.x + b.w / 2);
-    lvText.setAttribute("y", b.y + b.h / 2 + (b.h > 70 ? 16 : 12));
+    lvText.setAttribute("x", b.x + b.w / 2 + 6);
+    lvText.setAttribute("y", b.y + b.h / 2 + (b.h >= 56 ? 14 : 11));
     lvText.setAttribute("text-anchor", "middle");
-    lvText.setAttribute("font-size", b.h > 70 ? 34 : 26);
+    lvText.setAttribute("font-size", b.h >= 56 ? 28 : 24);
     lvText.setAttribute("font-weight", 800);
     lvText.classList.add("block-level-text");
 
@@ -253,6 +256,8 @@ function exportPNG() {
 
 /* ---------- 初期化 ---------- */
 function init() {
+  // OpenStreetMap由来のベースマップを挿入
+  document.getElementById("basemap-container").innerHTML = BASEMAP_SVG;
   loadState();
   buildBlocks();
   buildLegend();

@@ -5,6 +5,10 @@
 画像（PNG）を生成できるツールです。GitHub Pages だけで動作します
 （サーバー・データベース不要）。
 
+地図は **OpenStreetMap のデータから生成した実形状の地図**です。
+画像右下の「地図データ © OpenStreetMap contributors」の表記は
+ライセンス（ODbL）上必須なので削除しないでください。
+
 ## 当日の使い方
 
 1. サイトを開く（GitHub Pages のURL）
@@ -19,10 +23,17 @@
 
 ## GitHub Pages の公開手順（初回のみ）
 
+このリポジトリには自動デプロイ用のワークフロー（`.github/workflows/pages.yml`）が
+入っています。
+
 1. GitHub のリポジトリページ → **Settings** → **Pages**
-2. 「Build and deployment」の Source を **Deploy from a branch** にする
-3. Branch でこのファイルがあるブランチ（例：`main`）と `/ (root)` を選んで **Save**
-4. 数分後に `https://<ユーザー名>.github.io/biwako_map/` で公開されます
+2. 「Build and deployment」の Source を **GitHub Actions** にする
+3. ブランチにプッシュすると自動でデプロイされ、
+   `https://<ユーザー名>.github.io/biwako_map/` で公開されます
+   （Actions タブで進行状況を確認できます）
+
+Source を「Deploy from a branch」にしてブランチを選ぶ方法でも公開できます。
+その場合はブランチ選択後に **Save** を押し忘れないでください。
 
 ## カスタマイズ
 
@@ -31,12 +42,13 @@
 `blocks.js` の `BLOCKS` 配列を編集します。座標は地図（1280×720）基準です。
 
 ```js
-{ id: "A1", area: "なぎさ公園 湖側", x: 60, y: 204, w: 100, h: 86 },
+{ id: "A1", area: "打出の森 湖側", x: 356, y: 326, w: 64, h: 60, rot: -16 },
 ```
 
 - `id` … 画像に表示されるブロック名
 - `area` … 入力パネルに表示されるエリア名
 - `x, y, w, h` … 位置とサイズ
+- `rot` … 回転角（度）。湖岸の向きに合わせたい時に使います（省略可）
 
 行を追加・削除すれば、ブロック数も自由に変えられます。
 
@@ -46,17 +58,30 @@
 現在の配色は色覚多様性（色弱）に配慮して検証済みのものです。
 変更する場合も、各ブロックに数字が表示されるため意味は数字でも伝わります。
 
-### 地図のイラストを変える
+### 地図（ベースマップ）を作り直す
 
-`index.html` 内の `<svg id="map">` がオリジナルのイラスト地図です
-（Googleマップ等のスクリーンショットは利用規約上使えないため、SVGで描いたものです）。
-建物・緑地・ラベルなどはすべてSVG要素なので、直接編集できます。
+ベースマップ（`basemap.js`）は OpenStreetMap のデータから
+`tools/build_map.js` で自動生成しています。表示範囲やズームを変えたい場合：
+
+1. OSMデータを取得（Overpass API）：
+   ```
+   curl -X POST -d @tools/overpass.ql  "https://overpass-api.de/api/interpreter" -o osm.json
+   curl -X POST -d @tools/overpass2.ql "https://overpass-api.de/api/interpreter" -o osm2.json
+   ```
+2. `tools/build_map.js` の `SPAN_M`（表示幅・メートル）や `CX_M / CY_M`（中心のずらし量）を調整
+3. `node tools/build_map.js` を実行（osm.json と同じフォルダで）→ `basemap.js` ができるのでリポジトリ直下に置き換え
+
+地名ラベルや「入口・本部」の目印は `index.html` の `<g id="labels">` /
+`<g id="badges">` にあり、直接編集できます。
 
 ## ファイル構成
 
 | ファイル | 役割 |
 |---|---|
-| `index.html` | ページ本体＋イラスト地図（SVG） |
+| `index.html` | ページ本体＋ラベル・凡例などのSVG |
+| `basemap.js` | OpenStreetMap由来のベースマップ（自動生成・手で編集しない） |
 | `blocks.js` | ブロック定義・混雑度レベル定義（**調整はまずここ**） |
 | `app.js` | 入力・色分け・PNG書き出しの処理 |
 | `style.css` | 画面のスタイル |
+| `tools/` | ベースマップ再生成用スクリプト |
+| `.github/workflows/pages.yml` | GitHub Pages 自動デプロイ |
