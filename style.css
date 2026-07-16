@@ -1,0 +1,132 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  background: #f9f9f7;
+  color: #0b0b0b;
+}
+
+.app-header {
+  padding: 18px 24px 10px;
+  border-bottom: 1px solid #e1e0d9;
+  background: #ffffff;
+}
+.app-header h1 { margin: 0 0 6px; font-size: 20px; }
+.app-header p { margin: 0; font-size: 13px; color: #52514e; }
+
+.layout {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px 40px;
+  align-items: flex-start;
+}
+
+.map-pane {
+  flex: 1 1 640px;
+  min-width: 0;
+  position: sticky;
+  top: 16px;
+}
+.map-pane svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid #e1e0d9;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.control-pane {
+  flex: 0 0 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e1e0d9;
+  border-radius: 10px;
+  padding: 16px;
+}
+.card h2 { margin: 0 0 10px; font-size: 15px; }
+.hint { font-size: 12px; color: #898781; margin: 6px 0 10px; }
+
+.field { display: block; margin-bottom: 10px; font-size: 13px; }
+.field > span:first-child { display: block; margin-bottom: 4px; color: #52514e; }
+.field input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #c3c2b7;
+  border-radius: 6px;
+}
+.field-row { display: flex; gap: 8px; }
+.field-row input { flex: 1; }
+
+.btn {
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #c3c2b7;
+  background: #ffffff;
+  cursor: pointer;
+}
+.btn:hover { background: #f2f1ec; }
+.btn-small { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+.btn-primary {
+  background: #1c5cab;
+  border-color: #1c5cab;
+  color: #ffffff;
+  font-weight: 700;
+  width: 100%;
+}
+.btn-primary:hover { background: #184f95; }
+.btn-danger { color: #a81b1b; border-color: #d8a5a5; width: 100%; margin-top: 8px; }
+.btn-danger:hover { background: #faf0f0; }
+
+/* --- ブロック入力リスト --- */
+.block-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0efec;
+}
+.block-row:last-child { border-bottom: none; }
+.block-row .block-id { font-weight: 800; width: 34px; font-size: 14px; }
+.block-row .block-area { font-size: 11px; color: #898781; width: 92px; line-height: 1.3; }
+.level-buttons { display: flex; gap: 4px; margin-left: auto; }
+.level-buttons button {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #c3c2b7;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #52514e;
+}
+.level-buttons button.active {
+  color: #ffffff;
+  border-color: transparent;
+}
+.level-buttons button.active.level-0 { background: #a5a49d; }
+.level-buttons button.active.level-1 { background: #2a78d6; }
+.level-buttons button.active.level-2 { background: #0ca30c; }
+.level-buttons button.active.level-3 { background: #fab219; color: #212121; }
+.level-buttons button.active.level-4 { background: #e8641c; }
+.level-buttons button.active.level-5 { background: #a81b1b; }
+
+/* --- 地図上のブロック --- */
+#blocks-layer .block { cursor: pointer; }
+#blocks-layer .block rect { transition: fill 0.15s; }
+#blocks-layer .block:hover rect { stroke-width: 4; }
+
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .map-pane { position: static; width: 100%; }
+  .control-pane { flex: 1 1 auto; width: 100%; }
+}

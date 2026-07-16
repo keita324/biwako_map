@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>びわ湖大花火大会 混雑マップ生成ツール</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>びわ湖大花火大会 混雑マップ生成ツール</h1>
+  <p>各ブロックの混雑度（1〜5）を入力すると地図が色分けされます。地図上のブロックをタップしても切り替えられます。</p>
+</header>
+
+<main class="layout">
+
+  <!-- ===================== 地図 ===================== -->
+  <section class="map-pane">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720"
+         font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic',sans-serif">
+
+      <!-- 背景（陸地） -->
+      <rect x="0" y="0" width="1280" height="720" fill="#f2efe8"/>
+
+      <!-- 琵琶湖 -->
+      <path d="M0,0 H1280 V178 Q960,166 640,172 Q320,178 0,170 Z" fill="#aacfe6"/>
+      <path d="M0,0 H1280 V120 Q900,132 560,126 Q240,120 0,128 Z" fill="#9cc6e0"/>
+      <!-- 波 -->
+      <g stroke="#7fb3d3" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7">
+        <path d="M140,80 q14,-8 28,0 q14,8 28,0"/>
+        <path d="M420,55 q14,-8 28,0 q14,8 28,0"/>
+        <path d="M700,95 q14,-8 28,0 q14,8 28,0"/>
+        <path d="M980,60 q14,-8 28,0 q14,8 28,0"/>
+        <path d="M1150,110 q14,-8 28,0 q14,8 28,0"/>
+        <path d="M560,140 q14,-8 28,0 q14,8 28,0"/>
+      </g>
+      <text x="1085" y="105" font-size="34" font-weight="700" fill="#3a6f93" letter-spacing="8">琵琶湖</text>
+
+      <!-- 湖岸プロムナード（岸沿いの通路） -->
+      <path d="M0,170 Q320,178 640,172 Q960,166 1280,178 L1280,200 Q960,190 640,196 Q320,202 0,194 Z" fill="#e5d9bd"/>
+
+      <!-- なぎさ公園（打出の森）緑地 -->
+      <rect x="40" y="194" width="456" height="256" rx="14" fill="#cde3b8"/>
+      <!-- 木 -->
+      <g fill="#8fbf78">
+        <circle cx="75"  cy="420" r="14"/>
+        <circle cx="130" cy="405" r="17"/>
+        <circle cx="200" cy="425" r="13"/>
+        <circle cx="300" cy="408" r="16"/>
+        <circle cx="380" cy="424" r="13"/>
+        <circle cx="455" cy="410" r="15"/>
+      </g>
+      <text x="268" y="472" font-size="20" font-weight="700" fill="#4b7a3a" text-anchor="middle">大津湖岸なぎさ公園（打出の森）</text>
+
+      <!-- びわ湖ホール湖側の芝生 -->
+      <rect x="486" y="194" width="350" height="106" rx="10" fill="#cde3b8"/>
+
+      <!-- 東側プロムナード緑地帯 -->
+      <rect x="836" y="194" width="440" height="82" rx="10" fill="#cde3b8"/>
+      <g fill="#8fbf78">
+        <circle cx="880"  cy="292" r="11"/>
+        <circle cx="1000" cy="296" r="12"/>
+        <circle cx="1120" cy="292" r="11"/>
+        <circle cx="1230" cy="296" r="11"/>
+      </g>
+      <text x="1055" y="326" font-size="18" font-weight="700" fill="#4b7a3a" text-anchor="middle">なぎさのプロムナード</text>
+
+      <!-- びわ湖ホール -->
+      <g>
+        <rect x="520" y="316" width="180" height="200" rx="10" fill="#ffffff" stroke="#b9b6ad" stroke-width="2"/>
+        <rect x="660" y="336" width="170" height="180" rx="10" fill="#f7f6f2" stroke="#b9b6ad" stroke-width="2"/>
+        <path d="M535,330 q80,-24 160,0" stroke="#d5d2c8" stroke-width="4" fill="none"/>
+        <text x="672" y="432" font-size="24" font-weight="700" fill="#565349" text-anchor="middle">びわ湖ホール</text>
+      </g>
+
+      <!-- ピアザ淡海 -->
+      <rect x="900" y="356" width="120" height="96" rx="8" fill="#e3e1d9" stroke="#b9b6ad" stroke-width="2"/>
+      <text x="960" y="410" font-size="16" font-weight="600" fill="#6a675e" text-anchor="middle">ピアザ淡海</text>
+
+      <!-- なぎさ通り -->
+      <rect x="0" y="560" width="1280" height="46" fill="#c9c6bc"/>
+      <line x1="0" y1="583" x2="1280" y2="583" stroke="#ffffff" stroke-width="3" stroke-dasharray="22 16"/>
+      <text x="88" y="590" font-size="20" font-weight="700" fill="#5b5850">なぎさ通り</text>
+
+      <!-- 市街地 -->
+      <g fill="#e3e1d9" stroke="#cfccc3" stroke-width="1.5">
+        <rect x="60"  y="626" width="140" height="70" rx="6"/>
+        <rect x="230" y="626" width="120" height="70" rx="6"/>
+        <rect x="890" y="626" width="150" height="70" rx="6"/>
+        <rect x="1070" y="626" width="140" height="70" rx="6"/>
+        <rect x="60"  y="480" width="150" height="60" rx="6"/>
+        <rect x="250" y="490" width="130" height="50" rx="6"/>
+        <rect x="1060" y="356" width="160" height="120" rx="8"/>
+      </g>
+
+      <!-- 入口・本部の目印 -->
+      <g font-size="16" font-weight="700">
+        <rect x="46" y="440" width="56" height="28" rx="5" fill="#c22525"/>
+        <text x="74" y="460" fill="#ffffff" text-anchor="middle">入口</text>
+        <rect x="846" y="292" width="56" height="28" rx="5" fill="#c22525"/>
+        <text x="874" y="312" fill="#ffffff" text-anchor="middle">入口</text>
+        <rect x="912" y="292" width="56" height="28" rx="5" fill="#33322e"/>
+        <text x="940" y="312" fill="#ffffff" text-anchor="middle">本部</text>
+      </g>
+
+      <!-- ブロック（JSが生成） -->
+      <g id="blocks-layer"></g>
+
+      <!-- タイトルカード -->
+      <g>
+        <rect x="16" y="14" width="520" height="74" rx="10" fill="#ffffff" opacity="0.94" stroke="#c3c2b7" stroke-width="1.5"/>
+        <text id="svg-title" x="36" y="46" font-size="26" font-weight="800" fill="#0b0b0b">びわ湖大花火大会 混雑マップ</text>
+        <text id="svg-time" x="36" y="76" font-size="20" font-weight="600" fill="#52514e">-- 現在</text>
+      </g>
+
+      <!-- 凡例（JSが生成） -->
+      <g id="legend-layer"></g>
+
+      <!-- 注記 -->
+      <text x="1264" y="708" font-size="13" fill="#898781" text-anchor="end">※地図はイメージです（縮尺・形状は正確ではありません）</text>
+    </svg>
+  </section>
+
+  <!-- ===================== 入力パネル ===================== -->
+  <section class="control-pane">
+
+    <div class="card">
+      <h2>画像に表示する情報</h2>
+      <label class="field">
+        <span>タイトル</span>
+        <input type="text" id="input-title" value="びわ湖大花火大会 混雑マップ">
+      </label>
+      <label class="field">
+        <span>時刻表示</span>
+        <span class="field-row">
+          <input type="text" id="input-time" placeholder="例：17:30 現在">
+          <button type="button" id="btn-now" class="btn btn-small">現在時刻</button>
+        </span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>ブロックごとの混雑度</h2>
+      <p class="hint">「−」は未入力（灰色）に戻します。</p>
+      <div id="block-list"></div>
+    </div>
+
+    <div class="card actions">
+      <button type="button" id="btn-export" class="btn btn-primary">画像（PNG）を保存</button>
+      <button type="button" id="btn-reset" class="btn btn-danger">すべてリセット</button>
+      <p class="hint">保存したPNGを公式サイトに貼り付けてください。入力内容はこの端末のブラウザに自動保存されます。</p>
+    </div>
+
+  </section>
+</main>
+
+<script src="blocks.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
