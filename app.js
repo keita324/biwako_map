@@ -350,8 +350,9 @@ function exportPNG() {
 
 /* ---------- 初期化 ---------- */
 function init() {
-  // OpenStreetMap由来のベースマップを挿入
+  // OpenStreetMap由来のベースマップと公式ロゴを挿入
   document.getElementById("basemap-container").innerHTML = BASEMAP_SVG;
+  document.getElementById("logo-img").setAttribute("href", LOGO_DATA);
   loadState();
   buildBlocks();
   buildLegend();

@@ -80,6 +80,7 @@ Source を「Deploy from a branch」にしてブランチを選ぶ方法でも�
 |---|---|
 | `index.html` | ページ本体＋ラベル・凡例などのSVG |
 | `basemap.js` | OpenStreetMap由来のベースマップ（自動生成・手で編集しない） |
+| `logo.js` | 公式ロゴ（透過PNGのデータURI）。著作権は大会実行委員会に帰属 |
 | `blocks.js` | ブロック定義・混雑度レベル定義（**調整はまずここ**） |
 | `app.js` | 入力・色分け・PNG書き出しの処理 |
 | `style.css` | 画面のスタイル |
