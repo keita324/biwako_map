@@ -222,7 +222,7 @@ function buildLegend() {
     defs.appendChild(grad);
   }
 
-  const x0 = 16, y0 = 628, w = 700, h = 78;
+  const x0 = 16, y0 = 628, w = 576, h = 78;
   const mk = (name, attrs, text) => {
     const el = document.createElementNS(SVG_NS, name);
     for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
@@ -231,42 +231,33 @@ function buildLegend() {
     return el;
   };
 
-  // カード（タイトルカードと同じトーン）
-  mk("rect", { x: x0, y: y0, width: w, height: h, rx: 14, fill: "url(#title-grad)" });
-  mk("rect", { x: x0 + 6, y: y0 + 6, width: w - 12, height: h - 12, rx: 10,
-               fill: "none", stroke: "#c9a44a", "stroke-opacity": 0.5, "stroke-width": 1.2 });
+  // カード（半透明で地図が透ける）
+  mk("rect", { x: x0, y: y0, width: w, height: h, rx: 14,
+               fill: "#ffffff", "fill-opacity": 0.72,
+               stroke: "rgba(11,11,11,0.14)", "stroke-width": 1 });
 
   // 見出し
-  mk("text", { x: x0 + 22, y: y0 + 34, "font-size": 16, "font-weight": 800,
-               fill: "#ffffff", "letter-spacing": 2 }, "混雑度");
-  mk("text", { x: x0 + 22, y: y0 + 58, "font-size": 11,
-               fill: "#8d96b3" }, "点線は未入力");
+  mk("text", { x: x0 + 22, y: y0 + 46, "font-size": 16, "font-weight": 800,
+               fill: "#0b0b0b", "letter-spacing": 2 }, "混雑度");
 
   // グラデーションバー
   const bx = x0 + 108, bw = 440, by = y0 + 22, bh = 16;
   mk("rect", { x: bx, y: by, width: bw, height: bh, rx: 8, fill: "url(#legend-grad)",
-               stroke: "#ffffff", "stroke-opacity": 0.35, "stroke-width": 1 });
+               stroke: "#ffffff", "stroke-width": 1.5 });
 
   // 目盛り（1〜5）と両端ラベル
   const seg = LEVELS.filter((lv) => lv.value > 0);
   seg.forEach((lv, i) => {
     const cx = bx + (bw / (seg.length - 1)) * i;
     mk("line", { x1: cx, y1: by + bh, x2: cx, y2: by + bh + 5,
-                 stroke: "#8d96b3", "stroke-width": 1.2 });
+                 stroke: "#898781", "stroke-width": 1.2 });
     mk("text", { x: cx, y: by + bh + 20, "font-size": 12.5, "font-weight": 800,
-                 fill: "#ffffff", "text-anchor": "middle" }, String(lv.value));
+                 fill: "#0b0b0b", "text-anchor": "middle" }, String(lv.value));
   });
   mk("text", { x: bx, y: y0 + 14, "font-size": 12, "font-weight": 700,
-               fill: "#9fd0f5", "text-anchor": "start" }, "空いている");
+               fill: "#1c5cab", "text-anchor": "start" }, "空いている");
   mk("text", { x: bx + bw, y: y0 + 14, "font-size": 12, "font-weight": 700,
-               fill: "#f0938d", "text-anchor": "end" }, "大混雑");
-
-  // 未入力の見本（破線カプセル）
-  mk("rect", { x: x0 + 590, y: by, width: 84, height: 26, rx: 13,
-               fill: "#ffffff", "fill-opacity": 0.25,
-               stroke: "#c3c2b7", "stroke-width": 1.2, "stroke-dasharray": "4 3" });
-  mk("text", { x: x0 + 632, y: by + 18, "font-size": 12, "font-weight": 700,
-               fill: "#d5d3c9", "text-anchor": "middle" }, "未入力");
+               fill: "#a81b1b", "text-anchor": "end" }, "大混雑");
 }
 
 /* ---------- 旧凡例（未使用） ---------- */
