@@ -104,19 +104,15 @@ function buildBlocks() {
     outline.dataset.id = b.id;
     outlines.appendChild(outline);
 
-    // ブロック名＋数字のピル
+    // ブロック名＋数字のカプセル（混雑度の色で塗る）
     const pill = document.createElementNS(SVG_NS, "g");
     pill.dataset.id = b.id;
     const pr = document.createElementNS(SVG_NS, "rect");
-    pr.setAttribute("x", cx - 33);
+    pr.setAttribute("x", cx - 31);
     pr.setAttribute("y", cy - 14);
-    pr.setAttribute("width", 66);
+    pr.setAttribute("width", 62);
     pr.setAttribute("height", 28);
     pr.setAttribute("rx", 14);
-    pr.setAttribute("fill", "#ffffff");
-    pr.setAttribute("fill-opacity", 0.94);
-    pr.setAttribute("stroke", "rgba(11,11,11,0.18)");
-    pr.setAttribute("stroke-width", 1);
     const pt = document.createElementNS(SVG_NS, "text");
     pt.setAttribute("x", cx);
     pt.setAttribute("y", cy + 6);
@@ -149,32 +145,45 @@ function paintBlocks() {
     const ell = document.querySelector(`#heat-layer ellipse[data-id="${b.id}"]`);
     const outline = document.querySelector(`#outline-layer rect[data-id="${b.id}"]`);
     const pill = document.querySelector(`#pill-layer g[data-id="${b.id}"]`);
+    const pr = pill.querySelector("rect");
     const pt = pill.querySelector(".pill-text");
+    pt.innerHTML = "";
 
     if (lv.value === 0) {
       ell.setAttribute("display", "none");
       outline.setAttribute("display", "inline");
-      pt.innerHTML = "";
+      // 未入力：白の半透明カプセル＋破線
+      pr.setAttribute("fill", "#ffffff");
+      pr.setAttribute("fill-opacity", 0.6);
+      pr.setAttribute("stroke", "#8b8880");
+      pr.setAttribute("stroke-width", 1.2);
+      pr.setAttribute("stroke-dasharray", "4 3");
       const t1 = document.createElementNS(SVG_NS, "tspan");
       t1.setAttribute("font-size", 13);
       t1.setAttribute("font-weight", 700);
-      t1.setAttribute("fill", "#898781");
+      t1.setAttribute("fill", "#6d6b64");
       t1.textContent = b.id + " −";
       pt.appendChild(t1);
     } else {
       ell.setAttribute("fill", `url(#heat-grad-${lv.value})`);
       ell.setAttribute("display", "inline");
       outline.setAttribute("display", "none");
-      pt.innerHTML = "";
+      // 入力済み：混雑度の色で塗った半透明カプセル（色＝混雑度が直感的に伝わる）
+      pr.setAttribute("fill", lv.fill);
+      pr.setAttribute("fill-opacity", 0.85);
+      pr.setAttribute("stroke", "#ffffff");
+      pr.setAttribute("stroke-width", 1.6);
+      pr.removeAttribute("stroke-dasharray");
       const t1 = document.createElementNS(SVG_NS, "tspan");
       t1.setAttribute("font-size", 12);
       t1.setAttribute("font-weight", 700);
-      t1.setAttribute("fill", "#52514e");
+      t1.setAttribute("fill", lv.text);
+      t1.setAttribute("opacity", 0.9);
       t1.textContent = b.id + " ";
       const t2 = document.createElementNS(SVG_NS, "tspan");
       t2.setAttribute("font-size", 17);
       t2.setAttribute("font-weight", 800);
-      t2.setAttribute("fill", "#0b0b0b");
+      t2.setAttribute("fill", lv.text);
       t2.textContent = String(lv.value);
       pt.appendChild(t1);
       pt.appendChild(t2);
