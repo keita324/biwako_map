@@ -8,7 +8,8 @@ const STORAGE_KEY = "biwako-crowd-map-v1";
 /* 状態：ブロックID → レベル(0〜5) */
 const state = {
   levels: {},
-  title: "なぎさ公園エリア内自由（西側）- 混雑マップ",
+  title: "なぎさ公園エリア内自由（西側）",
+  title2: "混雑マップ",
   time: "",
 };
 
@@ -26,11 +27,17 @@ function loadState() {
     const data = JSON.parse(raw);
     if (data.levels) state.levels = data.levels;
     if (typeof data.title === "string") state.title = data.title;
+    if (typeof data.title2 === "string") state.title2 = data.title2;
     if (typeof data.time === "string") state.time = data.time;
-    // 旧デザインの既定タイトルは新しい既定値に置き換える
-    if (state.title === "びわ湖大花火大会 混雑マップ" || state.title === "混雑マップ") {
-      state.title = "なぎさ公園エリア内自由（西側）- 混雑マップ";
+    // 旧形式（1行タイトル）からの移行
+    if (/混雑マップ$/.test(state.title)) {
+      state.title = state.title.replace(/[\s\-−ー–—]*混雑マップ$/, "") || "なぎさ公園エリア内自由（西側）";
+      state.title2 = "混雑マップ";
     }
+    if (state.title === "びわ湖大花火大会" || state.title === "") {
+      state.title = "なぎさ公園エリア内自由（西側）";
+    }
+    if (!state.title2) state.title2 = "混雑マップ";
   } catch (e) { /* 壊れたデータは無視 */ }
 }
 
@@ -191,8 +198,79 @@ function paintBlocks() {
   });
 }
 
-/* ---------- 凡例（SVG内＝書き出し画像に含まれる） ---------- */
+/* ---------- 凡例（SVG内＝書き出し画像に含まれる） ----------
+   Yahoo!混雑レーダー等と同じ「連続グラデーションバー」方式。
+   タイトルカードと揃えた紺×金のカードに、
+   青（空いている）→赤（大混雑）のバーと目盛りを描く。 */
 function buildLegend() {
+  const layer = document.getElementById("legend-layer");
+  layer.textContent = "";
+
+  const defs = document.querySelector("#map defs");
+  let grad = document.getElementById("legend-grad");
+  if (!grad) {
+    grad = document.createElementNS(SVG_NS, "linearGradient");
+    grad.setAttribute("id", "legend-grad");
+    grad.setAttribute("x1", 0); grad.setAttribute("y1", 0);
+    grad.setAttribute("x2", 1); grad.setAttribute("y2", 0);
+    LEVELS.filter((lv) => lv.value > 0).forEach((lv, i, arr) => {
+      const stop = document.createElementNS(SVG_NS, "stop");
+      stop.setAttribute("offset", i / (arr.length - 1));
+      stop.setAttribute("stop-color", lv.fill);
+      grad.appendChild(stop);
+    });
+    defs.appendChild(grad);
+  }
+
+  const x0 = 16, y0 = 628, w = 700, h = 78;
+  const mk = (name, attrs, text) => {
+    const el = document.createElementNS(SVG_NS, name);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    if (text !== undefined) el.textContent = text;
+    layer.appendChild(el);
+    return el;
+  };
+
+  // カード（タイトルカードと同じトーン）
+  mk("rect", { x: x0, y: y0, width: w, height: h, rx: 14, fill: "url(#title-grad)" });
+  mk("rect", { x: x0 + 6, y: y0 + 6, width: w - 12, height: h - 12, rx: 10,
+               fill: "none", stroke: "#c9a44a", "stroke-opacity": 0.5, "stroke-width": 1.2 });
+
+  // 見出し
+  mk("text", { x: x0 + 22, y: y0 + 34, "font-size": 16, "font-weight": 800,
+               fill: "#ffffff", "letter-spacing": 2 }, "混雑度");
+  mk("text", { x: x0 + 22, y: y0 + 58, "font-size": 11,
+               fill: "#8d96b3" }, "点線は未入力");
+
+  // グラデーションバー
+  const bx = x0 + 108, bw = 440, by = y0 + 22, bh = 16;
+  mk("rect", { x: bx, y: by, width: bw, height: bh, rx: 8, fill: "url(#legend-grad)",
+               stroke: "#ffffff", "stroke-opacity": 0.35, "stroke-width": 1 });
+
+  // 目盛り（1〜5）と両端ラベル
+  const seg = LEVELS.filter((lv) => lv.value > 0);
+  seg.forEach((lv, i) => {
+    const cx = bx + (bw / (seg.length - 1)) * i;
+    mk("line", { x1: cx, y1: by + bh, x2: cx, y2: by + bh + 5,
+                 stroke: "#8d96b3", "stroke-width": 1.2 });
+    mk("text", { x: cx, y: by + bh + 20, "font-size": 12.5, "font-weight": 800,
+                 fill: "#ffffff", "text-anchor": "middle" }, String(lv.value));
+  });
+  mk("text", { x: bx, y: y0 + 14, "font-size": 12, "font-weight": 700,
+               fill: "#9fd0f5", "text-anchor": "start" }, "空いている");
+  mk("text", { x: bx + bw, y: y0 + 14, "font-size": 12, "font-weight": 700,
+               fill: "#f0938d", "text-anchor": "end" }, "大混雑");
+
+  // 未入力の見本（破線カプセル）
+  mk("rect", { x: x0 + 590, y: by, width: 84, height: 26, rx: 13,
+               fill: "#ffffff", "fill-opacity": 0.25,
+               stroke: "#c3c2b7", "stroke-width": 1.2, "stroke-dasharray": "4 3" });
+  mk("text", { x: x0 + 632, y: by + 18, "font-size": 12, "font-weight": 700,
+               fill: "#d5d3c9", "text-anchor": "middle" }, "未入力");
+}
+
+/* ---------- 旧凡例（未使用） ---------- */
+function buildLegendOld() {
   const layer = document.getElementById("legend-layer");
   layer.textContent = "";
 
@@ -305,7 +383,8 @@ function paintPanel() {
 
 /* ---------- タイトル・時刻 ---------- */
 function paintHeaderTexts() {
-  document.getElementById("svg-title").textContent = state.title || "混雑マップ";
+  document.getElementById("svg-title").textContent = state.title || "";
+  document.getElementById("svg-title2").textContent = state.title2 || "";
   document.getElementById("svg-time").textContent = state.time || "";
 }
 
@@ -362,12 +441,19 @@ function init() {
   paintHeaderTexts();
 
   const titleInput = document.getElementById("input-title");
+  const title2Input = document.getElementById("input-title2");
   const timeInput = document.getElementById("input-time");
   titleInput.value = state.title;
+  title2Input.value = state.title2;
   timeInput.value = state.time;
 
   titleInput.addEventListener("input", () => {
     state.title = titleInput.value;
+    paintHeaderTexts();
+    saveState();
+  });
+  title2Input.addEventListener("input", () => {
+    state.title2 = title2Input.value;
     paintHeaderTexts();
     saveState();
   });

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>びわ湖大花火大会 混雑マップ生成ツール</title>
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -80,8 +80,9 @@
         <!-- 公式ロゴ（JSが logo.js のデータを挿入） -->
         <image id="logo-img" x="40" y="26" width="162" height="97" preserveAspectRatio="xMidYMid meet"/>
         <line x1="222" y1="40" x2="222" y2="108" stroke="#c9a44a" stroke-opacity="0.4" stroke-width="1"/>
-        <text id="svg-title" x="240" y="72" font-size="19" font-weight="800" fill="#ffffff" letter-spacing="1">なぎさ公園エリア内自由（西側）- 混雑マップ</text>
-        <text id="svg-time" x="240" y="104" font-size="17" font-weight="700" fill="#e6c35c" letter-spacing="1"></text>
+        <text id="svg-title" x="455" y="60" font-size="18" font-weight="700" fill="#ffffff" letter-spacing="1" text-anchor="middle">なぎさ公園エリア内自由（西側）</text>
+        <text id="svg-title2" x="455" y="96" font-size="27" font-weight="800" fill="#ffffff" letter-spacing="6" text-anchor="middle">混雑マップ</text>
+        <text id="svg-time" x="668" y="118" font-size="15" font-weight="700" fill="#e6c35c" letter-spacing="1" text-anchor="end"></text>
       </g>
 
       <!-- 凡例（JSが生成） -->
@@ -101,8 +102,12 @@
     <div class="card">
       <h2>画像に表示する情報</h2>
       <label class="field">
-        <span>タイトル</span>
-        <input type="text" id="input-title" value="なぎさ公園エリア内自由（西側）- 混雑マップ">
+        <span>タイトル（1行目）</span>
+        <input type="text" id="input-title" value="なぎさ公園エリア内自由（西側）">
+      </label>
+      <label class="field">
+        <span>タイトル（2行目・中央揃え）</span>
+        <input type="text" id="input-title2" value="混雑マップ">
       </label>
       <label class="field">
         <span>時刻表示</span>
@@ -128,9 +133,9 @@
   </section>
 </main>
 
-<script src="basemap.js?v=6"></script>
-<script src="logo.js?v=6"></script>
-<script src="blocks.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="basemap.js?v=7"></script>
+<script src="logo.js?v=7"></script>
+<script src="blocks.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
