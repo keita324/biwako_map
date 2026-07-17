@@ -8,7 +8,7 @@ const STORAGE_KEY = "biwako-crowd-map-v1";
 /* 状態：ブロックID → レベル(0〜5) */
 const state = {
   levels: {},
-  title: "混雑マップ",
+  title: "なぎさ公園エリア内自由（西側）- 混雑マップ",
   time: "",
 };
 
@@ -28,7 +28,9 @@ function loadState() {
     if (typeof data.title === "string") state.title = data.title;
     if (typeof data.time === "string") state.time = data.time;
     // 旧デザインの既定タイトルは新しい既定値に置き換える
-    if (state.title === "びわ湖大花火大会 混雑マップ") state.title = "混雑マップ";
+    if (state.title === "びわ湖大花火大会 混雑マップ" || state.title === "混雑マップ") {
+      state.title = "なぎさ公園エリア内自由（西側）- 混雑マップ";
+    }
   } catch (e) { /* 壊れたデータは無視 */ }
 }
 
@@ -79,8 +81,9 @@ function buildBlocks() {
     const ell = document.createElementNS(SVG_NS, "ellipse");
     ell.setAttribute("cx", cx);
     ell.setAttribute("cy", cy);
-    ell.setAttribute("rx", b.w * 0.72);
-    ell.setAttribute("ry", b.h * 0.72);
+    // ブロック間が途切れず溶け合うよう、ブロックより一回り大きくする
+    ell.setAttribute("rx", b.w * 1.0);
+    ell.setAttribute("ry", b.h * 0.95);
     if (rotAttr) ell.setAttribute("transform", rotAttr);
     ell.dataset.id = b.id;
     heat.appendChild(ell);
